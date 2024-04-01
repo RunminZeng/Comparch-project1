@@ -14,10 +14,50 @@ def get_neighbor(img, tree, codebook):
     """
     Find the nearest neighbor in the database based on VLAD descriptor and refine with RANSAC.
     """
+    sift = cv2.SIFT_create()
+    
     q_VLAD = get_VLAD(img, codebook).reshape(1, -1)
     _, index = tree.query(q_VLAD, 1)
     nearest_id = index[0][0]
-    return nearest_id
+    # return nearest_id
+    # Assuming you have a way to get the original keypoints and descriptors for the nearest image
+    save_dir = "data/images/"
+    nearest_img_path = os.path.join(save_dir, f"{nearest_id}.jpg")
+    nearest_img = cv2.imread(nearest_img_path)
+
+    # Compute keypoints and descriptors for the query image
+    kp1, des1 = sift.detectAndCompute(img, None)
+    kp2, des2 = sift.detectAndCompute(nearest_img, None)  # Key points of the nearest image
+
+    # FLANN parameters and matcher
+    FLANN_INDEX_KDTREE = 1
+    index_params = dict(algorithm=FLANN_INDEX_KDTREE, trees=5)
+    search_params = dict(checks=50)
+    flann = cv2.FlannBasedMatcher(index_params, search_params)
+
+    matches = flann.knnMatch(des1, des2, k=2)
+
+    # Apply Lowe's ratio test
+    good_matches = [m for m, n in matches if m.distance < 0.7*n.distance]
+
+    # Minimum number of good matches to consider a reliable localization
+    MIN_MATCH_COUNT = 10
+    if len(good_matches) > MIN_MATCH_COUNT:
+        src_pts = np.float32([kp1[m.queryIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+        dst_pts = np.float32([kp2[m.trainIdx].pt for m in good_matches]).reshape(-1, 1, 2)
+
+        # Apply RANSAC
+        _, inliers = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+        if inliers is not None and inliers.sum() > MIN_MATCH_COUNT:
+            # print("RANSAC verification successful")
+            return nearest_id
+        # else:
+            # print("RANSAC verification failed, looking for next best match")
+            # Implement logic to handle failure (e.g., try the second nearest neighbor)
+    # else:
+        # print("Not enough good matches")
+
+    return None
 
 
 def show_target_images(images):
@@ -224,16 +264,18 @@ class KeyboardPlayerPyGame(Player):
                     phase_time = (current_time - self.exploration_start_time) // 1000
                     
                 keys = pygame.key.get_pressed()
-                if keys[pygame.K_q]:
-                    self.pre_nav_compute()
-                
+
                 if not self.prenav:
-                    if self.frame_count % 3 == 0:
-                        save_path = self.save_dir + str(self.count) + ".jpg"
-                        cv2.imwrite(save_path, fpv)
-                        VLAD = get_VLAD(self.fpv, self.codebook)
-                        self.database.append(VLAD)
-                        self.count += 1
+                    if keys[pygame.K_q]:
+                        print("q")
+                        self.pre_nav_compute()
+                        
+                    # if self.frame_count % 1 == 0:
+                    save_path = self.save_dir + str(self.count) + ".jpg"
+                    cv2.imwrite(save_path, fpv)
+                    VLAD = get_VLAD(self.fpv, self.codebook)
+                    self.database.append(VLAD)
+                    self.count += 1
                     
             elif self._state[1] == Phase.NAVIGATION:
                 if self.navigation_start_time is None:
@@ -248,7 +290,7 @@ class KeyboardPlayerPyGame(Player):
                     print(f'Goal ID: {self.goal}')
                 
             if self.prenav: # Display the goal IDs if pre-navigation is done
-                if self.frame_count % 3 == 0:
+                if self.frame_count % 5 == 0:
                     self.index = get_neighbor(self.fpv, self.tree, self.codebook)
                 
                 if self.goal:

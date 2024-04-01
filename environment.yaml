@@ -1,4 +1,4 @@
-name: game
+name: game-midterm
 channels:
   - conda-forge
 dependencies:
