@@ -264,12 +264,12 @@ class KeyboardPlayerPyGame(Player):
                     phase_time = (current_time - self.exploration_start_time) // 1000
                     
                 keys = pygame.key.get_pressed()
+                
+                if keys[pygame.K_q]:
+                    print("q")
+                    self.pre_nav_compute()
 
                 if not self.prenav:
-                    if keys[pygame.K_q]:
-                        print("q")
-                        self.pre_nav_compute()
-                        
                     # if self.frame_count % 1 == 0:
                     save_path = self.save_dir + str(self.count) + ".jpg"
                     cv2.imwrite(save_path, fpv)
@@ -292,6 +292,13 @@ class KeyboardPlayerPyGame(Player):
             if self.prenav: # Display the goal IDs if pre-navigation is done
                 if self.frame_count % 5 == 0:
                     self.index = get_neighbor(self.fpv, self.tree, self.codebook)
+                    
+                if self.index is None:
+                    save_path = self.save_dir + str(self.count) + ".jpg"
+                    cv2.imwrite(save_path, fpv)
+                    VLAD = get_VLAD(self.fpv, self.codebook)
+                    self.database.append(VLAD)
+                    self.count += 1
                 
                 if self.goal:
                     ids_text = f"Current ID: {self.index}, Goal IDs: {self.goal}"
