@@ -92,6 +92,40 @@ def show_target_images(images):
 
     cv2.imshow(f'KeyboardPlayer:target_images', concat_img)
     cv2.waitKey(1)
+    
+def show_target_images_with_neighbors(original_images, tree, codebook, save_dir):
+    """
+    Display original target images and their nearest neighbors from the database side by side.
+    original_images: List of original target images.
+    tree: BallTree for nearest neighbor search.
+    codebook: Codebook for VLAD feature encoding.
+    save_dir: Directory where images are stored.
+    """
+    if original_images is None or len(original_images) <= 0:
+        return
+
+    # For each original image, find its nearest neighbor and prepare for display
+    paired_images = []  # This will store tuples of (original_image, nearest_neighbor_image)
+    for img in original_images:
+        nearest_id = get_neighbor(img, tree, codebook)
+        if nearest_id is not None:
+            nearest_img_path = os.path.join(save_dir, f"{nearest_id}.jpg")
+            nearest_img = cv2.imread(nearest_img_path)
+            if nearest_img is not None:
+                paired_images.append((img, nearest_img))
+            else:
+                print(f"Nearest image {nearest_id} not found in {save_dir}")
+        else:
+            print("Nearest neighbor not found.")
+
+    # Create a grid to display the original and nearest images side by side
+    for i, (original_img, nearest_img) in enumerate(paired_images):
+        # Resize for consistent display if necessary
+        # Assuming the original and nearest images are of the same size for simplicity
+        paired = cv2.hconcat([original_img, nearest_img])
+        cv2.imshow(f"Target {i+1} and Nearest Neighbor", paired)
+
+    cv2.waitKey(1)  # Display the images until a key is pressed
 
 def display_img_from_id(id, window_name, save_dir):
     """
@@ -123,6 +157,7 @@ class KeyboardPlayerPyGame(Player):
         self.goal = None
         self.index = 0
         self.frame_count = 0
+        self.tree = None
         
         self.exploration_start_time = None
         self.navigation_start_time = None
@@ -131,10 +166,10 @@ class KeyboardPlayerPyGame(Player):
         self.save_dir = save_dir_full
         if not os.path.isdir(save_dir_full):
             os.makedirs(save_dir_full, exist_ok=True)
-        else:
-            # clear images
-            for file in os.listdir(save_dir_full):
-                os.remove(os.path.join(save_dir_full, file))
+        # else:
+        #     # clear images
+        #     for file in os.listdir(save_dir_full):
+        #         os.remove(os.path.join(save_dir_full, file))
 
     def reset(self):
         # Reset the player state
@@ -179,7 +214,9 @@ class KeyboardPlayerPyGame(Player):
         Set target images
         """
         super(KeyboardPlayerPyGame, self).set_target_images(images)
-        show_target_images(images)
+        # show_target_images(images)
+        if self.tree:
+            show_target_images_with_neighbors(images, self.tree, self.codebook, self.save_dir)
 
     def pre_nav_compute(self):
         """

@@ -1,0 +1,15 @@
+01-Apr-24 16:07:56 - INFO: player.py is using vis_nav_game 1.2.1
+01-Apr-24 16:07:57 - INFO: vis_nav_game.core version=1.2.1
+01-Apr-24 16:07:57 - INFO: init from /Users/leoli/Desktop/vis_nav_player/startup.json: {'ESSENTIAL_FILE_ID': '1CvIOxnKO8Z8NDBh-kKOpUuWEgPinLLSV', 'MAZE_FILE_ID': '1kafgmEANtBof9tSMUIr_ECAvRIr7-tA5', 'MAZE_FILE_MD5_KEY': '956854a18d34d849cfaf42058ec199a8'}
+01-Apr-24 16:07:57 - INFO: Pass checking essential files
+01-Apr-24 16:07:57 - INFO: Verified /Users/leoli/Desktop/vis_nav_player/data/maze.json
+01-Apr-24 16:07:57 - INFO: Start loading the map
+01-Apr-24 16:07:57 - INFO: Init rules from {'NAV_START_TIME': 1712001600.0, 'NOISY_MOTION': 0}
+01-Apr-24 16:07:57 - INFO: NAV_START_TIME set to 2024/04/01 16:00:00
+01-Apr-24 16:07:57 - INFO: System time=1712002077.558808, Internet time=1712002077.5979576, diff=0.03914952278137207
+01-Apr-24 16:07:57 - INFO: Loaded rules for competition!
+01-Apr-24 16:08:07 - INFO: Finished loading the map: takes 9.818128108978271 s
+01-Apr-24 16:08:09 - INFO: Target Images processing completed.
+01-Apr-24 16:08:09 - INFO: EXPLORATION phase passed. Proceeding to NAVIGATION phase.
+01-Apr-24 16:08:25 - INFO: Saving the game, please wait...
+01-Apr-24 16:08:25 - INFO: Game saved successfully at /Users/leoli/Desktop/vis_nav_player/data/save/game-20240401-160825.npy.
